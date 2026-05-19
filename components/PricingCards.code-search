@@ -1,0 +1,30 @@
+# Query: PricingCards
+# ContextLines: 1
+
+6 results - 3 files
+
+app\pricing\page.tsx:
+   1: import PricingCardsV2 from "@/components/pricing-cards-v2"
+   2  
+
+  17          </div>
+  18:         <PricingCardsV2 />
+  19        </div>
+
+components\pricing-cards-v2.tsx:
+  145  
+  146: export default function PricingCardsV2() {
+  147    const handleClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+
+  273  
+  274:   console.log('PricingCardsV2 загружен', new Date().toLocaleTimeString());
+  275  
+
+components\pricing-cards.tsx:
+  145  
+  146: export default function PricingCards() {
+  147    const handleClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+
+  273  
+  274:   console.log('PricingCards загружен v2', new Date().toLocaleTimeString());
+  275  
