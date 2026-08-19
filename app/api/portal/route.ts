@@ -7,7 +7,8 @@ export async function POST(request: NextRequest) {
     const response = await fetch('https://n8n.lumitera.online/webhook/portal', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-webhook-secret': process.env.N8N_WEBHOOK_SECRET || ''
       },
       body: JSON.stringify(body)
     })

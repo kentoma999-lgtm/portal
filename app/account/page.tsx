@@ -1,82 +1,201 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
-import { CreditCard, Wallet, RefreshCw, MessageSquare, Phone } from "lucide-react"
+import { CreditCard, Wallet, RefreshCw, MessageSquare, Phone, Info } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
-// Pricing
-const MESSAGE_PRICE = 0.005 // $0.005 per message
-const MINUTE_PRICE = 0.025  // $0.025 per minute
-
-// Initial balances for progress calculation (will be configurable)
-const INITIAL_MESSAGES = 50000
-const INITIAL_MINUTES = 5000
+const MINUTE_PRICE = 2.5
 
 export default function AccountPage() {
+  const router = useRouter()
   const { user } = useAuth()
-  const [usdRate, setUsdRate] = useState<number>(90)
-  const [rateUpdated, setRateUpdated] = useState<string>("")
-  const [isLoadingRate, setIsLoadingRate] = useState(true)
-  
-  const [trafficAmount, setTrafficAmount] = useState(0)
+  const [messagePrice, setMessagePrice] = useState(0.55)
+  const [trafficAmount, setTrafficAmount] = useState(2000)
   const [telephonyAmount, setTelephonyAmount] = useState(0)
+  const [balanceMessages, setBalanceMessages] = useState<number>(user?.balance_messages || 0)
+  const [balanceMinutes, setBalanceMinutes] = useState<number>(user?.balance_minutes || 0)
+  const [totalMessages, setTotalMessages] = useState<number>(user?.total_messages || 0)
+  const [totalMinutes, setTotalMinutes] = useState<number>(user?.total_minutes || 0)
+  const [isPaying, setIsPaying] = useState(false)
+
+  // Проверка платежа при возврате из ЮKassa
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const paymentId = params.get('paymentId')
+    if (paymentId && user?.key) {
+      fetch('/api/payment/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'succeeded') {
+          window.history.replaceState({}, '', '/account')
+          // Обновить данные из /api/portal
+          fetch('/api/portal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: user.key })
+          })
+          .then(res => res.json())
+          .then(portalData => {
+            localStorage.setItem('clientData', JSON.stringify(portalData))
+            window.location.reload()
+          })
+        }
+      })
+      .catch(() => {})
+    }
+  }, [user?.key])
 
   useEffect(() => {
-    const fetchRate = async () => {
-      setIsLoadingRate(true)
-      try {
-        const response = await fetch("/api/currency-rate")
-        const data = await response.json()
-        if (data.rate) {
-          setUsdRate(data.rate)
-          setRateUpdated(data.updated || new Date().toLocaleTimeString("ru-RU"))
+    fetch("/api/currency-rate")
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          const tariffLower = (user?.tariff || "").toLowerCase()
+          if (tariffLower === "старт" || tariffLower === "start") {
+            setMessagePrice(data.messagePriceStart || data.messagePrice)
+          } else if (tariffLower === "рост" || tariffLower === "growth") {
+            setMessagePrice(data.messagePriceGrowth || data.messagePrice)
+          } else {
+            setMessagePrice(data.messagePriceSystem || data.messagePrice)
+          }
         }
-      } catch {
-        setUsdRate(90)
-        setRateUpdated("fallback")
-      } finally {
-        setIsLoadingRate(false)
+      })
+      .catch(() => {})
+  }, [user?.tariff])
+
+  useEffect(() => {
+    if (!user?.key) return
+
+    const fetchPortalBalance = async () => {
+      try {
+        const response = await fetch("/api/portal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: user.key }),
+        })
+        if (!response.ok) throw new Error("Portal API request failed")
+        const data = await response.json()
+        if (typeof data.balance_messages === "number") setBalanceMessages(data.balance_messages)
+        if (typeof data.balance_minutes === "number") setBalanceMinutes(data.balance_minutes)
+        if (typeof data.total_messages === "number") setTotalMessages(data.total_messages)
+        if (typeof data.total_minutes === "number") setTotalMinutes(data.total_minutes)
+      } catch (error) {
+        console.error("Failed to load portal balance", error)
       }
     }
-    fetchRate()
-  }, [])
 
-  // Use data from Google Sheets via auth context
-  const balanceMessages = user?.balance_messages || 0
-  const balanceMinutes = user?.balance_minutes || 0
+    fetchPortalBalance()
+  }, [user?.key])
+
   const clientName = user?.name || "Клиент"
   const clientCompany = user?.company || ""
   const tariff = user?.tariff || ""
   const modules = user?.modules || ""
 
+  useEffect(() => {
+    if (tariff === "Старт") {
+      setTrafficAmount(4000)
+    }
+  }, [tariff])
+
   const tariffPrices: Record<string, string> = {
-    "Старт": "$50/мес",
-    "Рост": "$150/мес",
-    "Система": "$450/мес",
-    "AI Support": "$190/мес",
+    "Старт": "5 000 ₽/мес",
+    "Рост": "10 000 ₽/мес",
+    "Система": "20 000 ₽/мес",
+    "AI Support": "19 000 ₽/мес",
     "Телефония": "оплата по факту",
   }
 
-  // TODO: тариф и стоимость будут браться из API
   const tariffPlan = tariff && tariffPrices[tariff] ? tariff : "Рост"
   const tariffPrice = tariffPrices[tariffPlan]
   const tariffDisplay = `${tariffPlan} — ${tariffPrice}`
 
-  // Calculate used amounts based on remaining balance
-  const usedMessages = INITIAL_MESSAGES - Math.round(balanceMessages / MESSAGE_PRICE)
-  const usedMinutes = INITIAL_MINUTES - Math.round(balanceMinutes / MINUTE_PRICE)
-  
-  const trafficRemainingPercent = Math.max(0, (balanceMessages / (INITIAL_MESSAGES * MESSAGE_PRICE)) * 100)
-  const telephonyRemainingPercent = Math.max(0, (balanceMinutes / (INITIAL_MINUTES * MINUTE_PRICE)) * 100)
+  const formatExpiryDate = (dateStr: string): string => {
+    if (!dateStr) return "Не указано"
+    try {
+      const parts = dateStr.split('.')
+      if (parts.length === 3) {
+        const date = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]))
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+        }
+      }
+      const date = new Date(dateStr)
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+      }
+      return "Не указано"
+    } catch {
+      return "Не указано"
+    }
+  }
 
-  const trafficCostUsd = trafficAmount * MESSAGE_PRICE
-  const telephonyCostUsd = telephonyAmount * MINUTE_PRICE
-  const totalUsd = trafficCostUsd + telephonyCostUsd
-  const totalRub = totalUsd * usdRate
+  const subscriptionExpiryDate = formatExpiryDate(
+    (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('clientData') || '{}'))?.subscription_expires_at || 
+    user?.subscription_expires_at || ""
+  )
+
+  const usedMessages = Math.max(0, totalMessages - balanceMessages)
+  const usedMinutes = Math.max(0, totalMinutes - balanceMinutes)
+
+  const trafficRemainingPercent = totalMessages > 0 ? Math.max(0, (balanceMessages / totalMessages) * 100) : 0
+  const telephonyRemainingPercent = totalMinutes > 0 ? Math.max(0, (balanceMinutes / totalMinutes) * 100) : 0
+
+  const trafficCostRub = trafficAmount * messagePrice
+  const telephonyCostRub = telephonyAmount * MINUTE_PRICE
+  const totalRub = trafficCostRub + telephonyCostRub
+
+  const handlePaySubscription = async () => {
+    setIsPaying(true)
+    try {
+      const amount = parseInt(tariffPrice.replace(/[^0-9]/g, ''))
+      const response = await fetch('/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, key: user?.key, type: 'subscription' })
+      })
+      const data = await response.json()
+      if (data.confirmation?.confirmation_url) {
+        window.location.href = data.confirmation.confirmation_url
+      } else {
+        alert('Ошибка при создании платежа')
+      }
+    } catch (error) {
+      alert('Ошибка при создании платежа')
+    } finally {
+      setIsPaying(false)
+    }
+  }
+
+  const handlePayTraffic = async () => {
+    setIsPaying(true)
+    try {
+      const response = await fetch('/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: totalRub, key: user?.key, type: 'traffic' })
+      })
+      const data = await response.json()
+      if (data.confirmation?.confirmation_url) {
+        window.location.href = data.confirmation.confirmation_url
+      } else {
+        alert('Ошибка при создании платежа')
+      }
+    } catch (error) {
+      alert('Ошибка при создании платежа')
+    } finally {
+      setIsPaying(false)
+    }
+  }
 
   return (
     <main className="min-h-screen bg-background py-8 px-4">
@@ -94,16 +213,13 @@ export default function AccountPage() {
                 {tariff}
               </Badge>
               {modules && (
-                <span className="text-xs text-muted-foreground">
-                  {modules}
-                </span>
+                <span className="text-xs text-muted-foreground">{modules}</span>
               )}
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
-          {/* Подписка и оплата */}
           <Card className="bg-card border-border/50">
             <CardHeader>
               <CardTitle className="text-foreground flex items-center gap-2">
@@ -115,16 +231,29 @@ export default function AccountPage() {
               <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/30">
                 <div>
                   <p className="font-semibold text-foreground">Тариф {tariffDisplay}</p>
-                  <p className="text-sm text-muted-foreground">Следующее списание: 15 июня 2024</p>
+                  <p className="text-sm text-muted-foreground">Следующее списание: {subscriptionExpiryDate}</p>
                 </div>
-                <Button variant="outline" className="border-border/50">
-                  Изменить тариф
-                </Button>
+                <div className="flex flex-col gap-2 items-end">
+                  <Button 
+                    variant="default"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={handlePaySubscription}
+                    disabled={isPaying}
+                  >
+                    {isPaying ? "Загрузка..." : `Оплатить ${tariffPrice}`}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-border/50 hover:bg-[rgba(59,130,246,0.15)] hover:text-[#60a5fa]"
+                    onClick={() => router.push("/pricing")}
+                  >
+                    Изменить тариф
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Баланс и трафик */}
           <Card className="bg-card border-border/50">
             <CardHeader>
               <CardTitle className="text-foreground flex items-center gap-2">
@@ -133,7 +262,6 @@ export default function AccountPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Трафик (сообщения) */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-primary" />
@@ -141,7 +269,7 @@ export default function AccountPage() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">
-                    остаток <span className="text-foreground font-medium">${balanceMessages.toFixed(2)}</span> · использовано <span className="text-foreground font-medium">{Math.max(0, usedMessages).toLocaleString()}</span> сообщений
+                    остаток <span className="text-foreground font-medium">{balanceMessages.toFixed(0)} сообщений</span> · использовано <span className="text-foreground font-medium">{Math.max(0, usedMessages).toLocaleString()}</span> сообщений
                   </span>
                 </div>
                 <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
@@ -152,19 +280,23 @@ export default function AccountPage() {
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>0</span>
-                  <span>{INITIAL_MESSAGES.toLocaleString()} сообщений</span>
+                  <span>{totalMessages.toLocaleString()} сообщений</span>
                 </div>
               </div>
 
-              {/* Телефония (минуты) */}
-              <div className="space-y-3">
+              <div className="space-y-3 opacity-50 pointer-events-none relative">
+                <div className="absolute -top-2 right-0 z-10">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-black px-1.5 py-0.5 rounded-full">
+                    Скоро
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-emerald-400" />
                   <span className="font-medium text-foreground">Телефония (минуты)</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">
-                    остаток <span className="text-foreground font-medium">${balanceMinutes.toFixed(2)}</span> · использовано <span className="text-foreground font-medium">{Math.max(0, usedMinutes).toLocaleString()}</span> минут
+                    остаток <span className="text-foreground font-medium">{balanceMinutes.toFixed(0)} минут</span> · использовано <span className="text-foreground font-medium">{Math.max(0, usedMinutes).toLocaleString()}</span> минут
                   </span>
                 </div>
                 <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
@@ -175,22 +307,26 @@ export default function AccountPage() {
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>0</span>
-                  <span>{INITIAL_MINUTES.toLocaleString()} минут</span>
+                  <span>{totalMinutes.toLocaleString()} минут</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Пополнить баланс */}
           <Card className="bg-card border-border/50">
             <CardHeader>
               <CardTitle className="text-foreground flex items-center gap-2">
                 <RefreshCw className="w-5 h-5" />
                 Пополнить баланс
+                <span className="relative group inline-flex items-center">
+                  <Info className="w-3.5 h-3.5 text-muted-foreground/50 cursor-help ml-1" />
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-muted-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg">
+                    Цена на трафик динамическая и зависит от курса $/₽
+                  </span>
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Ползунок трафика */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-primary" />
@@ -199,23 +335,28 @@ export default function AccountPage() {
                 <Slider
                   value={[trafficAmount]}
                   onValueChange={(value) => setTrafficAmount(value[0])}
+                  min={tariff === "Старт" ? 4000 : 2000}
                   max={100000}
                   step={1000}
                   className="w-full"
                 />
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">0</span>
+                  <span className="text-muted-foreground">{tariff === "Старт" ? "4 000" : "2 000"}</span>
                   <span className="text-muted-foreground">100 000 сообщений</span>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
                   <p className="text-foreground">
-                    <span className="font-semibold">{trafficAmount.toLocaleString()}</span> сообщений = <span className="font-semibold">${trafficCostUsd.toFixed(2)}</span> = <span className="font-semibold">{(trafficCostUsd * usdRate).toFixed(0)} ₽</span>
+                    <span className="font-semibold">{trafficAmount.toLocaleString()}</span> сообщений = <span className="font-semibold">{trafficCostRub.toFixed(0)} ₽</span>
                   </p>
                 </div>
               </div>
 
-              {/* Ползунок телефонии */}
-              <div className="space-y-4">
+              <div className="space-y-4 opacity-50 pointer-events-none relative">
+                <div className="absolute -top-2 right-0 z-10">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-black px-1.5 py-0.5 rounded-full">
+                    Скоро
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-emerald-400" />
                   <span className="font-medium text-foreground">Телефония</span>
@@ -226,6 +367,7 @@ export default function AccountPage() {
                   max={10000}
                   step={100}
                   className="w-full"
+                  disabled
                 />
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">0</span>
@@ -233,47 +375,29 @@ export default function AccountPage() {
                 </div>
                 <div className="p-3 rounded-lg bg-muted/30 border border-border/30">
                   <p className="text-foreground">
-                    <span className="font-semibold">{telephonyAmount.toLocaleString()}</span> минут = <span className="font-semibold">${telephonyCostUsd.toFixed(2)}</span> = <span className="font-semibold">{(telephonyCostUsd * usdRate).toFixed(0)} ₽</span>
+                    <span className="font-semibold">{telephonyAmount.toLocaleString()}</span> минут = <span className="font-semibold">{telephonyCostRub.toFixed(0)} ₽</span>
                   </p>
                 </div>
               </div>
 
-              {/* Итого */}
               <div className="pt-4 border-t border-border/30">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-lg font-medium text-foreground">Итого:</span>
                   <span className="text-xl font-bold text-foreground">
-                    ${totalUsd.toFixed(2)} = {totalRub.toFixed(0)} ₽
+                    {totalRub.toFixed(0)} ₽
                   </span>
                 </div>
                 <Button 
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                  disabled={totalUsd === 0}
+                  disabled={totalRub === 0 || isPaying}
+                  onClick={handlePayTraffic}
                 >
-                  Оплатить
+                  {isPaying ? "Загрузка..." : "Оплатить"}
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Курс USD/RUB */}
-          <Card className="bg-card border-border/50">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Курс USD/RUB:</span>
-                  {isLoadingRate ? (
-                    <span className="text-sm text-muted-foreground">Загрузка...</span>
-                  ) : (
-                    <span className="font-medium text-foreground">{usdRate.toFixed(2)} ₽</span>
-                  )}
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {rateUpdated === "fallback" ? "fallback курс" : `обновлено: ${rateUpdated}`}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </main>

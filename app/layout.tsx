@@ -3,31 +3,47 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/components/providers'
 import { Navigation } from '@/components/navigation'
+import { FooterSection } from '@/components/footer-section'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const geist = Geist({ subsets: ["latin"] });
+const geistMono = Geist_Mono({ subsets: ["latin"] });
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export const metadata: Metadata = {
-  title: 'Lumitera Hub — Автоматизация продаж',
-  description: 'AI-сервис автоматизации продаж и поддержки для бизнеса',
-  generator: 'v0.app',
-  icons: {
-    icon: [
+  metadataBase: new URL('https://lumitera.ru'),
+  title: 'Lumitera — Автоматизация продаж',
+  description: 'AI-сервис автоматизации продаж, записей и общения с клиентами для бизнеса.',
+  openGraph: {
+    title: 'Lumitera — Автоматизация продаж',
+    description: 'AI-сервис автоматизации продаж, записей и общения с клиентами для бизнеса.',
+    siteName: 'Lumitera',
+    locale: 'ru_RU',
+    type: 'website',
+    images: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Lumitera — Автоматизация продаж',
       },
     ],
-    apple: '/apple-icon.png',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Lumitera — Автоматизация продаж',
+    description: 'AI-сервис автоматизации продаж, записей и общения с клиентами для бизнеса.',
+    images: ['/og-image.png'],
+  },
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+    shortcut: '/logo.png',
   },
 }
 
@@ -38,10 +54,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className="bg-background">
-      <body className="font-sans antialiased">
+      <body className={`${geist.className} font-sans antialiased`}>
         <Providers>
           <Navigation />
           {children}
+          <FooterSection />
         </Providers>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

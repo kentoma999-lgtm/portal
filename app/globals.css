@@ -1,78 +1,94 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Dark theme by default for tech aesthetic */
-  --background: oklch(0.12 0.01 260);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.16 0.015 260);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0.015 260);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.65 0.2 260);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0.02 260);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.22 0.02 260);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.55 0.25 280);
-  --accent-foreground: oklch(0.98 0 0);
+  --background: #06080d;
+  --foreground: #f3f6fb;
+  --card: #0b1018;
+  --card-foreground: #f3f6fb;
+  --popover: #0b1018;
+  --popover-foreground: #f3f6fb;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #0f1420;
+  --secondary-foreground: #f3f6fb;
+  --muted: #0f1420;
+  --muted-foreground: #9aa7bb;
+  --accent: #0f1420;
+  --accent-foreground: #f3f6fb;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.28 0.02 260);
-  --input: oklch(0.28 0.02 260);
-  --ring: oklch(0.65 0.2 260);
+  --border: rgba(255, 255, 255, 0.22);
+  --input: #0b1018;
+  --ring: rgba(255, 255, 255, 0.35);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.625rem;
-  --sidebar: oklch(0.14 0.01 260);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.65 0.2 260);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0.02 260);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.28 0.02 260);
-  --sidebar-ring: oklch(0.65 0.2 260);
+  --sidebar: #0b1018;
+  --sidebar-foreground: #f3f6fb;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0f1420;
+  --sidebar-accent-foreground: #f3f6fb;
+  --sidebar-border: rgba(255, 255, 255, 0.22);
+  --sidebar-ring: rgba(255, 255, 255, 0.35);
+  --bg-page: #06080d;
+  --bg-card: #0b1018;
+  --bg-hover: #121a2b;
+  --text-primary: #f3f6fb;
+  --text-secondary: #9aa7bb;
+  --text-muted: #7a8799;
+  --border-light: rgba(255, 255, 255, 0.22);
+  --c-blue: #378ADD;
+  --c-green: #639922;
+  --c-amber: #BA7517;
+  --c-teal: #1D9E75;
+  --c-purple: #7F77DD;
+  --c-red: #E24B4A;
+  --c-coral: #D85A30;
+  --c-gray: #888780;
+  --radius: 10px;
 }
 
 .dark {
-  --background: oklch(0.12 0.01 260);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.16 0.015 260);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0.015 260);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.65 0.2 260);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0.02 260);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.22 0.02 260);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.55 0.25 280);
-  --accent-foreground: oklch(0.98 0 0);
+  --background: #06080d;
+  --foreground: #f3f6fb;
+  --card: #0b1018;
+  --card-foreground: #f3f6fb;
+  --popover: #0b1018;
+  --popover-foreground: #f3f6fb;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #0f1420;
+  --secondary-foreground: #f3f6fb;
+  --muted: #0f1420;
+  --muted-foreground: #9aa7bb;
+  --accent: #0f1420;
+  --accent-foreground: #f3f6fb;
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.28 0.02 260);
-  --input: oklch(0.28 0.02 260);
-  --ring: oklch(0.65 0.2 260);
+  --border: rgba(255, 255, 255, 0.22);
+  --input: #0b1018;
+  --ring: rgba(255, 255, 255, 0.35);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.14 0.01 260);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.65 0.2 260);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0.02 260);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.28 0.02 260);
-  --sidebar-ring: oklch(0.65 0.2 260);
+  --sidebar: #0b1018;
+  --sidebar-foreground: #f3f6fb;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #0f1420;
+  --sidebar-accent-foreground: #f3f6fb;
+  --sidebar-border: rgba(255, 255, 255, 0.22);
+  --sidebar-ring: rgba(255, 255, 255, 0.35);
 }
 
 @theme inline {
@@ -121,6 +137,160 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: #06080d;
+    color: #f3f6fb;
   }
+}
+
+/* Убираем обводку при клике на Recharts графики */
+.recharts-pie:focus,
+.recharts-pie *:focus,
+.recharts-sector:focus,
+.recharts-sector *:focus {
+  outline: none;
+  stroke: none;
+}
+
+/* ========== ПЛАВНОЕ ПОЯВЛЕНИЕ ПРИ СКРОЛЛЕ ========== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Все прямые секции внутри контента страниц */
+main > section,
+main > div > section,
+main > div > div[class*="space-y"],
+section[class*="Hero"],
+section[class*="Section"] {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+/* Каскадная задержка */
+main > section:nth-child(1),
+main > div > section:nth-child(1),
+main > div > div[class*="space-y"]:nth-child(1) { animation-delay: 0ms; }
+
+main > section:nth-child(2),
+main > div > section:nth-child(2),
+main > div > div[class*="space-y"]:nth-child(2) { animation-delay: 100ms; }
+
+main > section:nth-child(3),
+main > div > section:nth-child(3),
+main > div > div[class*="space-y"]:nth-child(3) { animation-delay: 200ms; }
+
+main > section:nth-child(4),
+main > div > section:nth-child(4),
+main > div > div[class*="space-y"]:nth-child(4) { animation-delay: 300ms; }
+
+main > section:nth-child(5),
+main > div > section:nth-child(5),
+main > div > div[class*="space-y"]:nth-child(5) { animation-delay: 400ms; }
+
+main > section:nth-child(6),
+main > div > section:nth-child(6),
+main > div > div[class*="space-y"]:nth-child(6) { animation-delay: 500ms; }
+
+main > section:nth-child(7),
+main > div > section:nth-child(7),
+main > div > div[class*="space-y"]:nth-child(7) { animation-delay: 600ms; }
+
+main > section:nth-child(8),
+main > div > section:nth-child(8),
+main > div > div[class*="space-y"]:nth-child(8) { animation-delay: 700ms; }
+
+/* ========== ПРЕМИУМ ЭФФЕКТЫ ========== */
+
+/* Градиентный текст (синий → циан) */
+.text-gradient {
+  background: linear-gradient(90deg, #54a2ff 0%, #00d2ef 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Тонкая сетка на фоне с затуханием к краям */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 65% at 50% 0%, black 30%, transparent 78%);
+  mask-image: radial-gradient(ellipse 90% 65% at 50% 0%, black 30%, transparent 78%);
+}
+
+/* Карточка с градиентной рамкой (синяя → циановая) */
+.gradient-border {
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(rgba(11, 16, 24, 0.85), rgba(11, 16, 24, 0.85)),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(0, 210, 239, 0.4));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 50px -20px rgba(59, 130, 246, 0.4);
+}
+
+/* Акцентная карточка с градиентной рамкой и синей заливкой */
+.gradient-border-blue {
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.1)),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(0, 210, 239, 0.55));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 60px -20px rgba(59, 130, 246, 0.5);
+}
+
+/* Секции, обёрнутые в ScrollReveal, не анимируются при загрузке */
+.scroll-reveal > section {
+  animation: none !important;
+}
+
+/* ========== МЯГКОЕ СВЕЧЕНИЕ HERO ========== */
+/* Слой свечения: радиальные градиенты полностью гаснут до краёв блока */
+.hero-glow-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 46% 62% at 50% -5%, rgba(59, 130, 246, 0.32) 0%, rgba(59, 130, 246, 0.1) 42%, rgba(59, 130, 246, 0) 70%),
+    radial-gradient(ellipse 30% 36% at 74% 55%, rgba(0, 210, 239, 0.1) 0%, rgba(0, 210, 239, 0) 70%),
+    radial-gradient(ellipse 24% 28% at 20% 40%, rgba(96, 165, 250, 0.07) 0%, rgba(96, 165, 250, 0) 70%);
+}
+
+/* Сетка: ограничена верхней зоной, гасится маской И оверлеем */
+.hero-grid-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 480px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 0%, black 15%, transparent 72%);
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 0%, black 15%, transparent 72%);
+}
+
+.hero-grid-fade {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 80% at 50% 0%, transparent 25%, #06080d 78%);
 }

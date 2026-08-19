@@ -2,9 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 
-const SPREADSHEET_ID = "1bGiktD7_NCOF4-T_PZC6-NLihfAXx1qMPXf11dYsMUg"
-const API_KEY = "AIzaSyBq0Tug_G7oaXgcJFXRUxgx4PAtONJW_Bw"
-
 export interface UserData {
   key: string
   name: string
@@ -13,6 +10,9 @@ export interface UserData {
   modules: string
   balance_messages: number
   balance_minutes: number
+  total_messages: number
+  total_minutes: number
+  subscription_expires_at: string
   chart_1: string
   chart_2: string
   chart_3: string
@@ -43,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check localStorage on mount
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       try {
@@ -58,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserData = async (key: string): Promise<{ success: boolean; data?: UserData; error?: string }> => {
       try {
-        const response = await fetch('/api/portal', {
+        const response = await fetch('https://n8n.lumitera.online/webhook/portal', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -67,21 +66,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
 
         if (!response.ok) {
-          return { success: false, error: "Ошибка подключения к базе данных" }
+          return { success: false, error: "Неверный ключ" }
         }
 
         const data = await response.json()
 
-        if (data.error) {
-          return { success: false, error: "Неверный ключ доступа" }
+        if (!data || data.error) {
+          return { success: false, error: "Неверный ключ" }
         }
 
-        // Save raw client data for other parts of the app if needed
         try {
           localStorage.setItem("clientData", JSON.stringify(data))
         } catch {}
 
-        // Map received data to UserData (support both flat and nested `client` payloads)
         const src = data.client || data
         const userData: UserData = {
           key: src.key || key || "",
@@ -91,6 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           modules: src.modules || "",
           balance_messages: parseFloat(src.balance_messages ?? 0) || 0,
           balance_minutes: parseFloat(src.balance_minutes ?? 0) || 0,
+          total_messages: parseFloat(src.total_messages ?? 0) || 0,
+          total_minutes: parseFloat(src.total_minutes ?? 0) || 0,
+          subscription_expires_at: src.limits?.subscription_expires_at || src.subscription_expires_at || "",
           chart_1: src.chart_1 || "",
           chart_2: src.chart_2 || "",
           chart_3: src.chart_3 || "",

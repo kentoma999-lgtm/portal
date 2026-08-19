@@ -40,7 +40,7 @@ export function LoginForm() {
             <Sparkles className="w-8 h-8 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Lumitera Hub
+            Lumitera
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             Введите ключ доступа для входа в личный кабинет
